@@ -353,6 +353,34 @@ function CdaiTooltip({ active, payload, label }) {
   );
 }
 
+function BiomarkerTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const units = { CRP: 'mg/L', ESR: 'mm/h', FC: 'ug/g' };
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg">
+      <p className="mb-2 font-semibold text-slate-950">{label}</p>
+      {payload.map((entry) => (
+        <div key={entry.dataKey} className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-slate-500">{entry.name}</span>
+          </div>
+          <span className="font-medium text-slate-900">
+            {entry.value} {units[entry.name] ?? ''}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function InternalMedicineStructuredReport() {
   return (
     <div className="space-y-3">
@@ -363,29 +391,75 @@ function InternalMedicineStructuredReport() {
             <MetricTile key={metric.label} metric={metric} />
           ))}
         </div>
-        <div className="mt-4 overflow-hidden rounded-md border border-slate-200">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500">
-              <tr>
-                <th className="px-3 py-2 font-medium">日期</th>
-                <th className="px-3 py-2 font-medium">CRP</th>
-                <th className="px-3 py-2 font-medium">ESR</th>
-                <th className="px-3 py-2 font-medium">FC</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {internalMedicineReport.biologicalSigns.timeSeries.map((row) => (
-                <tr key={row.date}>
-                  <td className="whitespace-nowrap px-3 py-2 font-medium text-slate-900">
-                    {row.date}
-                  </td>
-                  <td className="px-3 py-2">{row.crp} mg/L</td>
-                  <td className="px-3 py-2">{row.esr} mm/h</td>
-                  <td className="px-3 py-2">{row.fc} ug/g</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-5 rounded-full bg-[#1d73d4]" />
+            CRP (mg/L)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-5 rounded-full bg-[#f59e0b]" />
+            ESR (mm/h)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-5 rounded-full bg-[#10b981]" />
+            FC (ug/g)
+          </span>
+        </div>
+        <div className="mt-2 h-[220px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={internalMedicineReport.biologicalSigns.timeSeries}
+              margin={{ top: 8, right: 12, bottom: 0, left: -20 }}
+            >
+              <CartesianGrid stroke="#e5edf5" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                interval={1}
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                tickMargin={8}
+              />
+              <YAxis
+                yAxisId="left"
+                tick={{ fontSize: 11, fill: '#64748b' }}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 11, fill: '#64748b' }}
+              />
+              <Tooltip content={<BiomarkerTooltip />} />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="crp"
+                name="CRP"
+                stroke="#1d73d4"
+                strokeWidth={2.5}
+                dot={{ r: 3, strokeWidth: 2, fill: '#1d73d4' }}
+                activeDot={{ r: 5 }}
+              />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="esr"
+                name="ESR"
+                stroke="#f59e0b"
+                strokeWidth={2.5}
+                dot={{ r: 3, strokeWidth: 2, fill: '#f59e0b' }}
+                activeDot={{ r: 5 }}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="fc"
+                name="FC"
+                stroke="#10b981"
+                strokeWidth={2.5}
+                dot={{ r: 3, strokeWidth: 2, fill: '#10b981' }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </Card>
 
